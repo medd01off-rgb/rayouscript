@@ -1,8 +1,9 @@
 import base64
 import datetime
 from decimal import Decimal
+import json
+import os
 import urllib.parse
-import extra_streamlit_components as stx
 import streamlit as st
 import streamlit.components.v1 as components
 
@@ -14,33 +15,68 @@ st.set_page_config(
     initial_sidebar_state="collapsed",
 )
 
-# Initialize Cookie Manager
-cookie_manager = stx.CookieManager()
-
-today_date_str = str(datetime.date.today())
 MAX_DAILY_LIMIT = 5
+DB_FILE = "ip_usage_db.json"
 
-# Fetch stored usage from Browser Cookies
-saved_date = cookie_manager.get(cookie="rayou_date")
-saved_count_str = cookie_manager.get(cookie="rayou_count")
 
-if saved_date == today_date_str and saved_count_str is not None:
+# Server-Side Global IP Database Functions
+def load_global_db():
+    if os.path.exists(DB_FILE):
+        try:
+            with open(DB_FILE, "r") as f:
+                return json.load(f)
+        except Exception:
+            return {}
+    return {}
+
+
+def save_global_db(db):
     try:
-        current_usage = int(saved_count_str)
-    except ValueError:
-        current_usage = 0
-else:
-    current_usage = 0
+        with open(DB_FILE, "w") as f:
+            json.dump(db, f)
+    except Exception:
+        pass
 
-# Sync with Session State
-if "usage_count" not in st.session_state:
-    st.session_state["usage_count"] = current_usage
-else:
-    st.session_state["usage_count"] = max(
-        st.session_state["usage_count"], current_usage
-    )
 
-current_usage = st.session_state["usage_count"]
+# Persistent in-memory global dictionary across all Streamlit user sessions
+if "GLOBAL_USAGE_DB" not in globals():
+    globals()["GLOBAL_USAGE_DB"] = load_global_db()
+
+
+def get_client_ip() -> str:
+    """Extract client IP from Streamlit headers."""
+    try:
+        if hasattr(st, "context") and hasattr(st.context, "headers"):
+            headers = st.context.headers
+            if "X-Forwarded-For" in headers:
+                return headers["X-Forwarded-For"].split(",")[0].strip()
+            if "x-forwarded-for" in headers:
+                return headers["x-forwarded-for"].split(",")[0].strip()
+    except Exception:
+        pass
+    return "default_client_ip"
+
+
+def get_ip_usage(ip: str, date_str: str) -> int:
+    db = globals()["GLOBAL_USAGE_DB"]
+    return db.get(date_str, {}).get(ip, 0)
+
+
+def increment_ip_usage(ip: str, date_str: str) -> int:
+    db = globals()["GLOBAL_USAGE_DB"]
+    if date_str not in db:
+        db[date_str] = {}
+    db[date_str][ip] = db[date_str].get(ip, 0) + 1
+    save_global_db(db)
+    return db[date_str][ip]
+
+
+# Identify Client & Date
+client_ip = get_client_ip()
+today_date_str = str(datetime.date.today())
+
+# Read usage directly from global server memory
+current_usage = get_ip_usage(client_ip, today_date_str)
 
 # GitHub Dark Theme Palette & Typography (Jost + Cairo)
 st.markdown(
@@ -339,55 +375,11 @@ if remaining_executions > 0:
             try:
                 authorization_token = _execute_cipher(sanitized_val)
 
-                # Increment count and persist directly to Browser Cookies
-                new_count = current_usage + 1
-                st.session_state["usage_count"] = new_count
-                cookie_manager.set("rayou_date", today_date_str, expires_at=datetime.datetime.now() + datetime.timedelta(days=1))
-                cookie_manager.set("rayou_count", str(new_count), expires_at=datetime.datetime.now() + datetime.timedelta(days=1))
+                # Increment IP count on global server memory
+                new_usage = increment_ip_usage(client_ip, today_date_str)
 
-                st.markdown(
-                    f"""
-                    <div class="result-container">
-                        <div class="result-label">Authorization Token | كود التفعيل الخاص بك</div>
-                        <div class="result-code">{authorization_token}</div>
-                    </div>
-                """,
-                    unsafe_allow_html=True,
-                )
-
-                copy_component_html = f"""
-                <div style="text-align: center; margin-top: 14px;">
-                    <button id="copyBtn" onclick="copyToClipboard()" style="
-                        background: transparent;
-                        color: #c5a059;
-                        border: 1px solid #c5a059;
-                        padding: 10px 22px;
-                        font-family: 'Jost', 'Cairo', sans-serif;
-                        font-size: 12px;
-                        font-weight: 600;
-                        letter-spacing: 1.5px;
-                        border-radius: 6px;
-                        cursor: pointer;
-                        transition: all 0.2s ease-in-out;
-                    ">COPY AUTHORIZATION CODE | نسخ كود التفعيل</button>
-                </div>
-                <script>
-                function copyToClipboard() {{
-                    navigator.clipboard.writeText('{authorization_token}');
-                    var button = document.getElementById('copyBtn');
-                    button.innerText = 'COPIED TO CLIPBOARD | تم النسخ بنجاح';
-                    button.style.background = '#c5a059';
-                    button.style.color = '#0d1117';
-                    setTimeout(function() {{
-                        button.innerText = 'COPY AUTHORIZATION CODE | نسخ كود التفعيل';
-                        button.style.background = 'transparent';
-                        button.style.color = '#c5a059';
-                    }}, 2000);
-                }}
-                </script>
-                """
-                components.html(copy_component_html, height=60)
-
+                # Store generated token in session state so it NEVER disappears
+                st.session_state["generated_token"] = authorization_token
             except Exception:
                 st.error(
                     "Processing Error: Invalid entry vector | خطأ في المعالجة: يرجى التأكد من إدخال رقم عشري صحيح."
@@ -396,6 +388,53 @@ if remaining_executions > 0:
             st.warning(
                 "Format Requirement: The input must include a decimal point | صيغة غير صحيحة: يجب أن يحتوي الرقم على فاصلة."
             )
+
+    # Persistent Display of Generated Code
+    if "generated_token" in st.session_state:
+        token_val = st.session_state["generated_token"]
+        st.markdown(
+            f"""
+            <div class="result-container">
+                <div class="result-label">Authorization Token | كود التفعيل الخاص بك</div>
+                <div class="result-code">{token_val}</div>
+            </div>
+        """,
+            unsafe_allow_html=True,
+        )
+
+        copy_component_html = f"""
+        <div style="text-align: center; margin-top: 14px;">
+            <button id="copyBtn" onclick="copyToClipboard()" style="
+                background: transparent;
+                color: #c5a059;
+                border: 1px solid #c5a059;
+                padding: 10px 22px;
+                font-family: 'Jost', 'Cairo', sans-serif;
+                font-size: 12px;
+                font-weight: 600;
+                letter-spacing: 1.5px;
+                border-radius: 6px;
+                cursor: pointer;
+                transition: all 0.2s ease-in-out;
+            ">COPY AUTHORIZATION CODE | نسخ كود التفعيل</button>
+        </div>
+        <script>
+        function copyToClipboard() {{
+            navigator.clipboard.writeText('{token_val}');
+            var button = document.getElementById('copyBtn');
+            button.innerText = 'COPIED TO CLIPBOARD | تم النسخ بنجاح';
+            button.style.background = '#c5a059';
+            button.style.color = '#0d1117';
+            setTimeout(function() {{
+                button.innerText = 'COPY AUTHORIZATION CODE | نسخ كود التفعيل';
+                button.style.background = 'transparent';
+                button.style.color = '#c5a059';
+            }}, 2000);
+        }}
+        </script>
+        """
+        components.html(copy_component_html, height=60)
+
 else:
     wa_msg_text = (
         "Hello Rayou Script, I would like to subscribe for unlimited access.\n"
