@@ -1,8 +1,6 @@
 import base64
 import datetime
 from decimal import Decimal
-import json
-import os
 import urllib.parse
 import streamlit as st
 import streamlit.components.v1 as components
@@ -15,65 +13,16 @@ st.set_page_config(
     initial_sidebar_state="collapsed",
 )
 
-# File DB path for persistent IP tracking
-DB_FILE = "usage_db.json"
+# Session State Initialization
+today_date = str(datetime.date.today())
+if (
+    "usage_date" not in st.session_state
+    or st.session_state["usage_date"] != today_date
+):
+    st.session_state["usage_date"] = today_date
+    st.session_state["usage_count"] = 0
+
 MAX_DAILY_LIMIT = 5
-
-
-# Helper functions to handle persistent IP-based usage tracking
-def load_usage_db():
-    if os.path.exists(DB_FILE):
-        try:
-            with open(DB_FILE, "r") as f:
-                return json.load(f)
-        except Exception:
-            return {}
-    return {}
-
-
-def save_usage_db(db):
-    try:
-        with open(DB_FILE, "w") as f:
-            json.dump(db, f)
-    except Exception:
-        pass
-
-
-def get_client_ip() -> str:
-    """Extracts client IP address from Streamlit headers."""
-    try:
-        if hasattr(st, "context") and hasattr(st.context, "headers"):
-            headers = st.context.headers
-            if "X-Forwarded-For" in headers:
-                return headers["X-Forwarded-For"].split(",")[0].strip()
-            if "x-forwarded-for" in headers:
-                return headers["x-forwarded-for"].split(",")[0].strip()
-    except Exception:
-        pass
-    return "default_user_ip"
-
-
-def get_ip_usage(ip: str, date_str: str) -> int:
-    db = load_usage_db()
-    return db.get(date_str, {}).get(ip, 0)
-
-
-def increment_ip_usage(ip: str, date_str: str) -> int:
-    db = load_usage_db()
-    if date_str not in db:
-        db = {date_str: {}}  # Clean up old dates
-    if ip not in db[date_str]:
-        db[date_str][ip] = 0
-    db[date_str][ip] += 1
-    save_usage_db(db)
-    return db[date_str][ip]
-
-
-# Fetch Client IP and Current Date
-client_ip = get_client_ip()
-today_date_str = str(datetime.date.today())
-current_usage = get_ip_usage(client_ip, today_date_str)
-
 
 # GitHub Dark Theme Palette & Typography (Jost + Cairo)
 st.markdown(
@@ -91,7 +40,7 @@ st.markdown(
         color: #c9d1d9;
     }
 
-    /* Header Container Style */
+    /* Header Container (Matched to Image Style) */
     .header-container {
         position: relative;
         text-align: center;
@@ -338,8 +287,9 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-# Execution Counter Check using IP Address
-remaining_executions = MAX_DAILY_LIMIT - current_usage
+# Persistent Browser LocalStorage Execution Counter Check
+current_count = st.session_state["usage_count"]
+remaining_executions = MAX_DAILY_LIMIT - current_count
 
 if remaining_executions > 0:
     st.markdown(
@@ -372,9 +322,7 @@ if remaining_executions > 0:
         if "." in sanitized_val:
             try:
                 authorization_token = _execute_cipher(sanitized_val)
-
-                # Increment IP count in persistent storage
-                increment_ip_usage(client_ip, today_date_str)
+                st.session_state["usage_count"] += 1
 
                 # Display Generated Authorization Code
                 st.markdown(
@@ -387,7 +335,7 @@ if remaining_executions > 0:
                     unsafe_allow_html=True,
                 )
 
-                # Dedicated Clipboard Copy Button Component
+                # Dedicated Clipboard Copy Button & LocalStorage Script Component
                 copy_component_html = f"""
                 <div style="text-align: center; margin-top: 14px;">
                     <button id="copyBtn" onclick="copyToClipboard()" style="
@@ -417,12 +365,21 @@ if remaining_executions > 0:
                         button.style.color = '#c5a059';
                     }}, 2000);
                 }}
+                
+                // Store usage per device in browser localStorage
+                var today = '{today_date}';
+                var storedDate = localStorage.getItem('rayou_date');
+                var storedCount = parseInt(localStorage.getItem('rayou_count') || '0', 10);
+                
+                if (storedDate !== today) {{
+                    localStorage.setItem('rayou_date', today);
+                    localStorage.setItem('rayou_count', '1');
+                }} else {{
+                    localStorage.setItem('rayou_count', (storedCount + 1).toString());
+                }}
                 </script>
                 """
                 components.html(copy_component_html, height=60)
-
-                # Trigger page rerun to update counter immediately
-                st.rerun()
 
             except Exception:
                 st.error(
