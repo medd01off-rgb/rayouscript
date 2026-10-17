@@ -23,7 +23,7 @@ if (
 
 MAX_DAILY_LIMIT = 5
 
-# Global Typography (Jost for Latin & Cairo for Arabic) & Luxury Dark Aesthetics
+# GitHub Dark Theme Palette & Typography (Jost + Cairo)
 st.markdown(
     """
     <style>
@@ -33,24 +33,26 @@ st.markdown(
         font-family: 'Jost', 'Cairo', sans-serif !important;
     }
 
+    /* GitHub Dark Canvas Background */
     .stApp {
-        background-color: #0b1325;
-        color: #e6edf3;
+        background-color: #0d1117;
+        color: #c9d1d9;
     }
 
-    /* Header Container */
+    /* Header Container (GitHub Card Style with Gold Accent) */
     .header-container {
         text-align: center;
-        padding: 35px 25px;
-        background: linear-gradient(145deg, #0d1b34 0%, #162a4a 100%);
-        border: 1px solid #c5a059;
-        border-radius: 4px;
+        padding: 30px 20px;
+        background-color: #161b22;
+        border: 1px solid #30363d;
+        border-top: 3px solid #c5a059;
+        border-radius: 6px;
         margin-bottom: 25px;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
     }
 
     .brand-title {
-        font-size: 32px;
+        font-size: 28px;
         font-weight: 700;
         letter-spacing: 3px;
         color: #c5a059;
@@ -60,139 +62,148 @@ st.markdown(
 
     .brand-subtitle {
         font-size: 13px;
-        letter-spacing: 2px;
-        color: #8a99ad;
-        margin-top: 8px;
+        letter-spacing: 1.5px;
+        color: #8b949e;
+        margin-top: 6px;
     }
 
-    /* Input Field Styling */
+    /* Input Field Styling (GitHub Dark Input) */
     .stTextInput > div > div > input {
-        background-color: #112038 !important;
+        background-color: #0d1117 !important;
         color: #c5a059 !important;
-        border: 1px solid #2a3d5c !important;
-        border-radius: 4px !important;
+        border: 1px solid #30363d !important;
+        border-radius: 6px !important;
         text-align: center;
-        font-size: 20px !important;
-        letter-spacing: 3px;
-        padding: 12px !important;
+        font-size: 18px !important;
+        letter-spacing: 2.5px;
+        padding: 10px 14px !important;
     }
 
     .stTextInput > div > div > input:focus {
         border-color: #c5a059 !important;
-        box-shadow: 0 0 8px rgba(197, 160, 89, 0.3) !important;
+        box-shadow: 0 0 0 3px rgba(197, 160, 89, 0.2) !important;
     }
 
     /* Primary Execution Button */
     .stButton > button {
         background: linear-gradient(180deg, #c5a059 0%, #a3813e 100%) !important;
-        color: #0b1325 !important;
+        color: #0d1117 !important;
         font-weight: 700 !important;
         font-size: 13px !important;
         letter-spacing: 2px !important;
         text-transform: uppercase !important;
         border: none !important;
-        border-radius: 4px !important;
-        padding: 14px 28px !important;
+        border-radius: 6px !important;
+        padding: 12px 24px !important;
         width: 100%;
-        transition: all 0.3s ease;
-        margin-top: 10px;
+        transition: all 0.2s ease-in-out;
+        margin-top: 8px;
     }
 
     .stButton > button:hover {
         background: linear-gradient(180deg, #d4af37 0%, #b59247 100%) !important;
-        box-shadow: 0 4px 15px rgba(197, 160, 89, 0.4) !important;
-        color: #0b1325 !important;
+        box-shadow: 0 4px 12px rgba(197, 160, 89, 0.3) !important;
+        color: #0d1117 !important;
     }
 
     /* Output Result Box */
     .result-container {
         text-align: center;
-        padding: 25px;
-        margin-top: 25px;
-        background-color: #112038;
-        border-left: 3px solid #c5a059;
-        border-right: 3px solid #c5a059;
-        border-radius: 2px;
-        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.25);
+        padding: 22px;
+        margin-top: 22px;
+        background-color: #161b22;
+        border: 1px solid #30363d;
+        border-left: 4px solid #c5a059;
+        border-right: 4px solid #c5a059;
+        border-radius: 6px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
     }
 
     .result-label {
         font-size: 12px;
-        letter-spacing: 2px;
-        color: #8a99ad;
+        letter-spacing: 1.5px;
+        color: #8b949e;
         text-transform: uppercase;
     }
 
     .result-code {
-        font-size: 44px;
+        font-size: 40px;
         font-weight: 700;
         color: #c5a059;
-        letter-spacing: 8px;
-        margin-top: 5px;
+        letter-spacing: 6px;
+        margin-top: 4px;
     }
 
     /* Daily Execution Counter Display */
     .usage-tracker {
         text-align: center;
         font-size: 12px;
-        letter-spacing: 1.5px;
-        color: #8a99ad;
+        letter-spacing: 1px;
+        color: #8b949e;
         margin-bottom: 12px;
     }
 
     /* Limit Threshold Exceeded Notice */
     .limit-container {
         text-align: center;
-        padding: 35px 25px;
-        margin-top: 25px;
-        background-color: #111d33;
-        border: 1px solid #7a2b3a;
-        border-radius: 4px;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+        padding: 30px 20px;
+        margin-top: 22px;
+        background-color: #161b22;
+        border: 1px solid #30363d;
+        border-top: 3px solid #f85149;
+        border-radius: 6px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
     }
 
-    .limit-title {
+    .limit-title-en {
         font-size: 16px;
         font-weight: 700;
-        color: #e57373;
-        letter-spacing: 2px;
+        color: #f85149;
+        letter-spacing: 1.5px;
         text-transform: uppercase;
-        margin-bottom: 12px;
+    }
+
+    .limit-title-ar {
+        font-size: 15px;
+        font-weight: 600;
+        color: #f85149;
+        margin-top: 4px;
+        margin-bottom: 15px;
     }
 
     .limit-desc {
         font-size: 13px;
-        color: #a3b1c6;
-        margin-bottom: 25px;
-        line-height: 1.8;
+        color: #8b949e;
+        margin-bottom: 22px;
+        line-height: 1.7;
     }
 
     .wa-link-button {
         display: inline-block;
         background: linear-gradient(180deg, #c5a059 0%, #a3813e 100%);
-        color: #0b1325 !important;
+        color: #0d1117 !important;
         text-decoration: none;
         font-weight: 700;
-        font-size: 13px;
-        letter-spacing: 2px;
-        padding: 14px 28px;
-        border-radius: 4px;
-        transition: all 0.3s ease;
+        font-size: 12px;
+        letter-spacing: 1.5px;
+        padding: 12px 24px;
+        border-radius: 6px;
+        transition: all 0.2s ease-in-out;
     }
 
     .wa-link-button:hover {
         background: linear-gradient(180deg, #d4af37 0%, #b59247 100%);
-        box-shadow: 0 4px 15px rgba(197, 160, 89, 0.4);
+        box-shadow: 0 4px 12px rgba(197, 160, 89, 0.3);
     }
 
-    /* Footer Section */
+    /* Footer Section (English Only) */
     .footer-container {
-        margin-top: 60px;
-        padding-top: 25px;
-        border-top: 1px solid #1a2d4a;
+        margin-top: 50px;
+        padding-top: 20px;
+        border-top: 1px solid #21262d;
         text-align: center;
         font-size: 12px;
-        color: #728197;
+        color: #8b949e;
         letter-spacing: 1px;
         line-height: 1.8;
     }
@@ -256,7 +267,7 @@ if remaining_executions > 0:
                 st.markdown(
                     f"""
                     <div class="result-container">
-                        <div class="result-label">Authorization Token | كود التفعيل الخـاص بك</div>
+                        <div class="result-label">Authorization Token | كود التفعيل الخاص بك</div>
                         <div class="result-code">{authorization_token}</div>
                     </div>
                 """,
@@ -265,19 +276,19 @@ if remaining_executions > 0:
 
                 # Dedicated Clipboard Copy Button Component
                 copy_component_html = f"""
-                <div style="text-align: center; margin-top: 15px;">
+                <div style="text-align: center; margin-top: 14px;">
                     <button id="copyBtn" onclick="copyToClipboard()" style="
                         background: transparent;
                         color: #c5a059;
                         border: 1px solid #c5a059;
-                        padding: 11px 26px;
+                        padding: 10px 22px;
                         font-family: 'Jost', 'Cairo', sans-serif;
                         font-size: 12px;
                         font-weight: 600;
                         letter-spacing: 1.5px;
-                        border-radius: 4px;
+                        border-radius: 6px;
                         cursor: pointer;
-                        transition: all 0.3s ease;
+                        transition: all 0.2s ease-in-out;
                     ">COPY AUTHORIZATION CODE | نسخ كود التفعيل</button>
                 </div>
                 <script>
@@ -286,7 +297,7 @@ if remaining_executions > 0:
                     var button = document.getElementById('copyBtn');
                     button.innerText = 'COPIED TO CLIPBOARD | تم النسخ بنجاح';
                     button.style.background = '#c5a059';
-                    button.style.color = '#0b1325';
+                    button.style.color = '#0d1117';
                     setTimeout(function() {{
                         button.innerText = 'COPY AUTHORIZATION CODE | نسخ كود التفعيل';
                         button.style.background = 'transparent';
@@ -295,7 +306,7 @@ if remaining_executions > 0:
                 }}
                 </script>
                 """
-                components.html(copy_component_html, height=65)
+                components.html(copy_component_html, height=60)
 
             except Exception:
                 st.error(
@@ -311,11 +322,12 @@ else:
     st.markdown(
         f"""
         <div class="limit-container">
-            <div class="limit-title">Script Execution Limit Reached | تم الوصول للحد الأقصى اليومي</div>
+            <div class="limit-title-en">Script Execution Limit Reached</div>
+            <div class="limit-title-ar">تم الوصول للحد الأقصى اليومي</div>
             <div class="limit-desc">
                 The maximum limit of {MAX_DAILY_LIMIT} daily executions has been reached.<br>
                 For unlimited operational access, please contact administration to activate your subscription.<br><br>
-                لقد وصلت للحد الأقصى المسموح به <b>({MAX_DAILY_LIMIT} محاولات يومياً)</b>.<br>
+                تم الوصول إلى الحد الأقصى لعدد عمليات الإعدام اليومية وهو {MAX_DAILY_LIMIT} عمليات.<br>
                 للحصول على استخدام غير محدود، يرجى التواصل مع الإدارة لتفعيل الاشتراك الكامل.
             </div>
             <a href="{whatsapp_subscription_url}" target="_blank" class="wa-link-button">Subscribe via WhatsApp | الاشتراك عبر الواتساب</a>
@@ -325,23 +337,23 @@ else:
     )
 
 # Confidential System Notice (Sidebar)
-st.sidebar.markdown("### Authorization Notice | معلومات النظام")
+st.sidebar.markdown("### Authorization Notice")
 st.sidebar.markdown(
     """
-**System / النظام:** Rayou Core Protocol  
-**Classification / التصنيف:** Proprietary & Restricted  
-**Developer / المطور:** Rayou  
-**Direct WhatsApp / التواصل المباشر:**  
+**System:** Rayou Core Protocol  
+**Classification:** Proprietary & Restricted  
+**Developer:** Rayou  
+**Direct WhatsApp:**  
 `+212 7 60 40 26 82`
 """
 )
 
-# Footer Section
+# Footer Section (English Only)
 st.markdown(
     """
     <div class="footer-container">
-        Engineered under <span class="footer-highlight">Rayou Script Systems</span> | جميع الحقوق محفوظة لـ سكريبت رايو<br>
-        Official Inquiries / للاستفسارات الرسمية: <span class="footer-highlight">+212 7 60 40 26 82</span>
+        Engineered under <span class="footer-highlight">Rayou Script Systems</span> | All Rights Reserved<br>
+        Official Inquiries: <span class="footer-highlight">+212 7 60 40 26 82</span>
     </div>
 """,
     unsafe_allow_html=True,
