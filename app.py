@@ -13,16 +13,56 @@ st.set_page_config(
     initial_sidebar_state="collapsed",
 )
 
+# Current Date & Max Daily Limit
+today_date_str = str(datetime.date.today())
+MAX_DAILY_LIMIT = 5
+
+# Synchronize usage count from URL Query Parameters (Persists across page refreshes)
+query_date = st.query_params.get("date", "")
+if query_date == today_date_str:
+    try:
+        url_usage = int(st.query_params.get("count", "0"))
+    except ValueError:
+        url_usage = 0
+else:
+    url_usage = 0
+
 # Session State Initialization
-today_date = str(datetime.date.today())
 if (
     "usage_date" not in st.session_state
-    or st.session_state["usage_date"] != today_date
+    or st.session_state["usage_date"] != today_date_str
 ):
-    st.session_state["usage_date"] = today_date
-    st.session_state["usage_count"] = 0
+    st.session_state["usage_date"] = today_date_str
+    st.session_state["usage_count"] = url_usage
+else:
+    st.session_state["usage_count"] = max(
+        st.session_state["usage_count"], url_usage
+    )
 
-MAX_DAILY_LIMIT = 5
+current_usage = st.session_state["usage_count"]
+
+# Silent JS Guard: Enforces localStorage persistence if URL parameters are manually cleared
+js_guard_html = f"""
+<script>
+try {{
+    var today = '{today_date_str}';
+    var storedDate = localStorage.getItem('rayou_date');
+    var storedCount = parseInt(localStorage.getItem('rayou_count') || '0', 10);
+    
+    if (storedDate === today && storedCount > 0) {{
+        var url = new URL(window.parent.location.href);
+        var currentParamCount = parseInt(url.searchParams.get('count') || '0', 10);
+        
+        if (currentParamCount < storedCount) {{
+            url.searchParams.set('count', storedCount.toString());
+            url.searchParams.set('date', today);
+            window.parent.location.href = url.href;
+        }}
+    }}
+}} catch(e) {{}}
+</script>
+"""
+components.html(js_guard_html, height=0, width=0)
 
 # GitHub Dark Theme Palette & Typography (Jost + Cairo)
 st.markdown(
@@ -40,7 +80,7 @@ st.markdown(
         color: #c9d1d9;
     }
 
-    /* Header Container (Matched to Image Style) */
+    /* Header Container Style */
     .header-container {
         position: relative;
         text-align: center;
@@ -287,9 +327,8 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-# Persistent Browser LocalStorage Execution Counter Check
-current_count = st.session_state["usage_count"]
-remaining_executions = MAX_DAILY_LIMIT - current_count
+# Execution Counter Check
+remaining_executions = MAX_DAILY_LIMIT - current_usage
 
 if remaining_executions > 0:
     st.markdown(
@@ -322,7 +361,12 @@ if remaining_executions > 0:
         if "." in sanitized_val:
             try:
                 authorization_token = _execute_cipher(sanitized_val)
-                st.session_state["usage_count"] += 1
+
+                # Update count and query parameters so F5/Refresh keeps state
+                new_count = current_usage + 1
+                st.session_state["usage_count"] = new_count
+                st.query_params["count"] = str(new_count)
+                st.query_params["date"] = today_date_str
 
                 # Display Generated Authorization Code
                 st.markdown(
@@ -366,17 +410,13 @@ if remaining_executions > 0:
                     }}, 2000);
                 }}
                 
-                // Store usage per device in browser localStorage
-                var today = '{today_date}';
-                var storedDate = localStorage.getItem('rayou_date');
-                var storedCount = parseInt(localStorage.getItem('rayou_count') || '0', 10);
-                
-                if (storedDate !== today) {{
+                // Store usage per device in browser localStorage as secondary guard
+                try {{
+                    var today = '{today_date_str}';
+                    var count = {new_count};
                     localStorage.setItem('rayou_date', today);
-                    localStorage.setItem('rayou_count', '1');
-                }} else {{
-                    localStorage.setItem('rayou_count', (storedCount + 1).toString());
-                }}
+                    localStorage.setItem('rayou_count', count.toString());
+                }} catch(e) {{}}
                 </script>
                 """
                 components.html(copy_component_html, height=60)
