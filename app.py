@@ -1,11 +1,10 @@
 import base64
 import datetime
 from decimal import Decimal
-import json
-import os
 import urllib.parse
 import streamlit as st
 import streamlit.components.v1 as components
+from upstash_redis import Redis
 
 # Page Configuration
 st.set_page_config(
@@ -15,36 +14,20 @@ st.set_page_config(
     initial_sidebar_state="collapsed",
 )
 
+# Connect to Upstash Redis Database using provided credentials
+UPSTASH_URL = "https://enabling-dane-155670.upstash.io"
+UPSTASH_TOKEN = (
+    "gQAAAAAAAmAWAAIgcDI5Yzc5ZjZlZTEzZWE0ZWVmYjc3OWM1ZWMyYTQyYWQyMw"
+)
+
+redis = Redis(url=UPSTASH_URL, token=UPSTASH_TOKEN)
+
 MAX_DAILY_LIMIT = 5
-DB_FILE = "ip_usage_db.json"
+today_date_str = str(datetime.date.today())
 
 
-# Server-Side Global IP Database Functions
-def load_global_db():
-    if os.path.exists(DB_FILE):
-        try:
-            with open(DB_FILE, "r") as f:
-                return json.load(f)
-        except Exception:
-            return {}
-    return {}
-
-
-def save_global_db(db):
-    try:
-        with open(DB_FILE, "w") as f:
-            json.dump(db, f)
-    except Exception:
-        pass
-
-
-# Persistent in-memory global dictionary across all Streamlit user sessions
-if "GLOBAL_USAGE_DB" not in globals():
-    globals()["GLOBAL_USAGE_DB"] = load_global_db()
-
-
+# Get Client IP Address from Streamlit context
 def get_client_ip() -> str:
-    """Extract client IP from Streamlit headers."""
     try:
         if hasattr(st, "context") and hasattr(st.context, "headers"):
             headers = st.context.headers
@@ -54,29 +37,38 @@ def get_client_ip() -> str:
                 return headers["x-forwarded-for"].split(",")[0].strip()
     except Exception:
         pass
-    return "default_client_ip"
+    return "default_user_ip"
 
 
-def get_ip_usage(ip: str, date_str: str) -> int:
-    db = globals()["GLOBAL_USAGE_DB"]
-    return db.get(date_str, {}).get(ip, 0)
-
-
-def increment_ip_usage(ip: str, date_str: str) -> int:
-    db = globals()["GLOBAL_USAGE_DB"]
-    if date_str not in db:
-        db[date_str] = {}
-    db[date_str][ip] = db[date_str].get(ip, 0) + 1
-    save_global_db(db)
-    return db[date_str][ip]
-
-
-# Identify Client & Date
 client_ip = get_client_ip()
-today_date_str = str(datetime.date.today())
+redis_key = f"usage:{today_date_str}:{client_ip}"
 
-# Read usage directly from global server memory
-current_usage = get_ip_usage(client_ip, today_date_str)
+
+# Helper functions to query and increment IP execution counters in Upstash Redis
+def get_ip_usage(key: str) -> int:
+    try:
+        val = redis.get(key)
+        if val is not None:
+            return int(val)
+    except Exception:
+        pass
+    return st.session_state.get("fallback_usage", 0)
+
+
+def increment_ip_usage(key: str) -> int:
+    try:
+        new_val = redis.incr(key)
+        return int(new_val)
+    except Exception:
+        pass
+    st.session_state["fallback_usage"] = (
+        st.session_state.get("fallback_usage", 0) + 1
+    )
+    return st.session_state["fallback_usage"]
+
+
+# Read current usage count directly from Upstash Redis
+current_usage = get_ip_usage(redis_key)
 
 # GitHub Dark Theme Palette & Typography (Jost + Cairo)
 st.markdown(
@@ -330,7 +322,7 @@ st.markdown(
     <div class="header-container">
         <a href="https://wa.me/212760402682" target="_blank" class="header-wa-badge" title="WhatsApp Contact">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="#161b22">
-                <path d="M12 2C6.48 2 2 6.48 2 12c0 1.82.49 3.53 1.35 5L2 22l5.12-1.32C8.51 21.52 10.2 22 12 22c5.52 0 10-4.48 10-10S17.52 2 12 2zm0 18c-1.57 0-3.04-.42-4.32-1.16l-.31-.18-3.21.83.84-3.13-.2-.32C4.04 14.95 3.6 13.51 3.6 12c0-4.63 3.77-8.4 8.4-8.4s8.4 3.77 8.4 8.4-3.77 8.4-8.4 8.4zm4.61-6.28c-.25-.13-1.49-.74-1.72-.82-.23-.08-.4-.13-.57.13-.17.25-.66.82-.81.99-.15.17-.3.19-.55.06-.25-.13-1.07-.39-2.04-1.25-.76-.67-1.27-1.5-1.42-1.75-.15-.25-.02-.39.11-.51.11-.11.25-.29.38-.44.13-.15.17-.25.25-.42.08-.17.04-.32-.02-.44-.06-.13-.57-1.37-.78-1.87-.2-.49-.41-.42-.57-.43h-.49c-.17 0-.44.06-.67.31-.23.25-.88.86-.88 2.1 0 1.24.9 2.44 1.03 2.61.13.17 1.77 2.71 4.29 3.8.6.26 1.07.41 1.44.53.6.19 1.15.16 1.59.1.48-.07 1.49-.61 1.7-.19.21-.58.21-.98.15-1.05-.06-.07-.23-.13-.48-.26z"/>
+                <path d="M12 2C6.48 2 2 6.48 2 12c0 1.82.49 3.53 1.35 5L2 22l5.12-1.32C8.51 21.52 10.2 22 12 22c5.52 0 10-4.48 10-10S17.52 2 12 2zm0 18c-1.57 0-3.04-.42-4.32-1.16l-.31-.18-3.21.83.84-3.13-.2-.32C4.04 14.95 3.6 13.51 3.6 12c0-4.63 3.77-8.4 8.4-8.4s8.4 3.77 8.4 8.4-3.77 8.4-8.4-8.4zm4.61-6.28c-.25-.13-1.49-.74-1.72-.82-.23-.08-.4-.13-.57.13-.17.25-.66.82-.81.99-.15.17-.3.19-.55.06-.25-.13-1.07-.39-2.04-1.25-.76-.67-1.27-1.5-1.42-1.75-.15-.25-.02-.39.11-.51.11-.11.25-.29.38-.44.13-.15.17-.25.25-.42.08-.17.04-.32-.02-.44-.06-.13-.57-1.37-.78-1.87-.2-.49-.41-.42-.57-.43h-.49c-.17 0-.44.06-.67.31-.23.25-.88.86-.88 2.1 0 1.24.9 2.44 1.03 2.61.13.17 1.77 2.71 4.29 3.8.6.26 1.07.41 1.44.53.6.19 1.15.16 1.59.1.48-.07 1.49-.61 1.7-.19.21-.58.21-.98.15-1.05-.06-.07-.23-.13-.48-.26z"/>
             </svg>
         </a>
         <div class="brand-title">RAYOU SCRIPT</div>
@@ -348,6 +340,145 @@ if remaining_executions > 0:
         f"""
         <div class="usage-tracker">
             <div>Daily Executions Remaining: <b>{remaining_executions}/{MAX_DAILY_LIMIT}</b></div>
+            <div>المحاولات المتبقية اليوم: <b>{remaining_executions}/{MAX_DAILY_LIMIT}</b></div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    st.markdown(
+        '<div class="input-label-centered">DECIMAL INPUT VECTOR</div>',
+        unsafe_allow_html=True,
+    )
+
+    decimal_entry = st.text_input(
+        "",
+        placeholder="34.7313",
+        help="Enter the decimal sequence | أدخل التسلسل العشري",
+        label_visibility="collapsed",
+    )
+
+    if st.button(
+        "GENERATE AUTHORIZATION CODE | توليد كود التفعيل",
+        use_container_width=True,
+    ):
+        sanitized_val = decimal_entry.strip()
+        if "." in sanitized_val:
+            try:
+                authorization_token = _execute_cipher(sanitized_val)
+
+                # Increment IP count directly in Upstash Redis database
+                increment_ip_usage(redis_key)
+
+                st.session_state["generated_token"] = authorization_token
+            except Exception:
+                st.error(
+                    "Processing Error: Invalid entry vector | خطأ في المعالجة: يرجى التأكد من إدخال رقم عشري صحيح."
+                )
+        else:
+            st.warning(
+                "Format Requirement: The input must include a decimal point | صيغة غير صحيحة: يجب أن يحتوي الرقم على فاصلة."
+            )
+
+    # Display Generated Authorization Code
+    if "generated_token" in st.session_state:
+        token_val = st.session_state["generated_token"]
+        st.markdown(
+            f"""
+            <div class="result-container">
+                <div class="result-label">Authorization Token | كود التفعيل الخاص بك</div>
+                <div class="result-code">{token_val}</div>
+            </div>
+        """,
+            unsafe_allow_html=True,
+        )
+
+        copy_component_html = f"""
+        <div style="text-align: center; margin-top: 14px;">
+            <button id="copyBtn" onclick="copyToClipboard()" style="
+                background: transparent;
+                color: #c5a059;
+                border: 1px solid #c5a059;
+                padding: 10px 22px;
+                font-family: 'Jost', 'Cairo', sans-serif;
+                font-size: 12px;
+                font-weight: 600;
+                letter-spacing: 1.5px;
+                border-radius: 6px;
+                cursor: pointer;
+                transition: all 0.2s ease-in-out;
+            ">COPY AUTHORIZATION CODE | نسخ كود التفعيل</button>
+        </div>
+        <script>
+        function copyToClipboard() {{
+            navigator.clipboard.writeText('{token_val}');
+            var button = document.getElementById('copyBtn');
+            button.innerText = 'COPIED TO CLIPBOARD | تم النسخ بنجاح';
+            button.style.background = '#c5a059';
+            button.style.color = '#0d1117';
+            setTimeout(function() {{
+                button.innerText = 'COPY AUTHORIZATION CODE | نسخ كود التفعيل';
+                button.style.background = 'transparent';
+                button.style.color = '#c5a059';
+            }}, 2000);
+        }}
+        </script>
+        """
+        components.html(copy_component_html, height=60)
+
+else:
+    wa_msg_text = (
+        "Hello Rayou Script, I would like to subscribe for unlimited access.\n"
+        "مرحباً رايو سكريبت، أود الاشتراك للحصول على وصول غير محدود."
+    )
+    encoded_wa_msg = urllib.parse.quote(wa_msg_text)
+    whatsapp_subscription_url = (
+        f"https://wa.me/212760402682?text={encoded_wa_msg}"
+    )
+
+    st.markdown(
+        f"""
+        <div class="limit-container">
+            <div class="limit-title-en">Script Execution Limit Reached</div>
+            <div class="limit-title-ar">تم الوصول للحد الأقصى اليومي</div>
+            <div class="limit-desc">
+                The maximum limit of {MAX_DAILY_LIMIT} daily executions has been reached.<br>
+                For unlimited operational access, please contact administration to activate your subscription.<br><br>
+                تم الوصول إلى الحد الأقصى لعدد عمليات الإعدام اليومية وهو {MAX_DAILY_LIMIT} عمليات.<br>
+                للحصول على استخدام غير محدود، يرجى التواصل مع الإدارة لتفعيل الاشتراك الكامل.
+            </div>
+            <a href="{whatsapp_subscription_url}" target="_blank" class="wa-link-button">
+                Subscribe via WhatsApp<br>
+                <span style="font-size: 12px; font-weight: 600; letter-spacing: 0;">الاشتراك عبر الواتساب</span>
+            </a>
+        </div>
+    """,
+        unsafe_allow_html=True,
+    )
+
+# Confidential System Notice (Sidebar)
+st.sidebar.markdown("### Authorization Notice")
+st.sidebar.markdown(
+    """
+**System:** Rayou Core Protocol  
+**Classification:** Proprietary & Restricted  
+**Developer:** Rayou  
+**Direct WhatsApp:**  
+`+212 7 60 40 26 82`
+"""
+)
+
+# Footer Section (English Only)
+st.markdown(
+    """
+    <div class="footer-container">
+        Engineered under <span class="footer-highlight">Rayou Script Systems</span> | All Rights Reserved<br>
+        Official Inquiries: <span class="footer-highlight">+212 7 60 40 26 82</span>
+    </div>
+""",
+    unsafe_allow_html=True,
+)
+v>Daily Executions Remaining: <b>{remaining_executions}/{MAX_DAILY_LIMIT}</b></div>
             <div>المحاولات المتبقية اليوم: <b>{remaining_executions}/{MAX_DAILY_LIMIT}</b></div>
         </div>
         """,
