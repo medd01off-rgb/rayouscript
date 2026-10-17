@@ -8,7 +8,7 @@ import streamlit as st
 
 getcontext().prec = 60
 
-# --- أود كود المحرك والقواعد كاملين كيبقاو كيفما هما ---
+# --- أود كود المحرك والقواعد كاملين ---
 _ENCODED_DATA = "Rk9SIE1PUkUgSU5GT1JNQVRJT04sIFBMRUFTRSBDT05UQUNUIFVTIFZJQSBXSEFUU0FQUCArMjEyIDcgNjAgNDAgMjYgODI="
 _ENCODED_PHONE = "KzIxMiA3IDYwIDQwIDI2IDgy"
 _ENCODED_TITLE = "U0NSSVBUIEJZIFJBWU9VIC0gVjIuMQ=="
@@ -661,29 +661,154 @@ def calculate_averages(df):
   return total_prob / total_preds, total_odds / total_preds
 
 
-# --- STREAMLIT UI ---
+# --- STREAMLIT UI WITH CUSTOM LUXURY DARK THEME ---
 st.set_page_config(
-    page_title="Quantum Football Engine", page_icon="⚽", layout="centered"
+    page_title="Quantum Football Engine Pro",
+    page_icon="⚡",
+    layout="centered",
+    initial_sidebar_state="collapsed",
 )
 
-st.title("⚽ QUANTUM FOOTBALL ENGINE V2.1")
-st.write("---")
+# Custom CSS Styles
+st.markdown(
+    """
+    <style>
+    /* Background and main container */
+    .stApp {
+        background: linear-gradient(135deg, #0d1117 0%, #161b22 100%);
+        color: #c9d1d9;
+        font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    }
+    
+    /* Main Title Styling */
+    .main-header {
+        text-align: center;
+        padding: 20px 0;
+        background: linear-gradient(90deg, #10b981 0%, #3b82f6 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        font-size: 2.2rem;
+        font-weight: 800;
+        letter-spacing: 1px;
+    }
+    
+    /* Card Container */
+    .custom-card {
+        background-color: #1e2631;
+        border: 1px solid #30363d;
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 20px;
+        box-shadow: 0 8px 16px rgba(0,0,0,0.4);
+    }
+    
+    /* Input Box Styles */
+    .stTextInput input {
+        background-color: #0d1117 !important;
+        color: #e6edf3 !important;
+        border: 1px solid #30363d !important;
+        border-radius: 8px !important;
+    }
+    .stTextInput input:focus {
+        border-color: #10b981 !important;
+        box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2) !important;
+    }
 
-col1, col2 = st.columns(2)
-with col1:
-  h_name = st.text_input("Home Team Name", "TEAM A")
-  h_input = st.text_input(
-      f"Last 5 Results ({h_name})", "2-1 1-1 3-0 0-1 2-0", key="h_res"
-  )
-with col2:
-  a_name = st.text_input("Away Team Name", "TEAM B")
-  a_input = st.text_input(
-      f"Last 5 Results ({a_name})", "0-1 2-2 1-0 1-1 0-0", key="a_res"
-  )
+    /* Primary Button Style */
+    .stButton>button {
+        background: linear-gradient(90deg, #10b981 0%, #059669 100%) !important;
+        color: #ffffff !important;
+        font-weight: 700 !important;
+        border: none !important;
+        border-radius: 8px !important;
+        padding: 12px 24px !important;
+        font-size: 1rem !important;
+        transition: all 0.3s ease !important;
+        box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3) !important;
+    }
+    .stButton>button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(16, 185, 129, 0.5) !important;
+    }
+    
+    /* Result Prediction Cards */
+    .prediction-box {
+        background: linear-gradient(90deg, #1a2332 0%, #0f172a 100%);
+        border-left: 4px solid #10b981;
+        border-radius: 8px;
+        padding: 14px 18px;
+        margin-bottom: 10px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .prediction-box-surprise {
+        border-left-color: #f59e0b !important;
+    }
+    .prediction-rank {
+        color: #10b981;
+        font-weight: 800;
+        font-size: 1.1rem;
+        margin-right: 10px;
+    }
+    .prediction-match {
+        color: #f8fafc;
+        font-weight: 700;
+        font-size: 1.05rem;
+    }
+    .prediction-prob {
+        background-color: rgba(16, 185, 129, 0.15);
+        color: #34d399;
+        padding: 4px 10px;
+        border-radius: 6px;
+        font-weight: 700;
+        font-size: 0.9rem;
+    }
+    .match-code-badge {
+        background: linear-gradient(90deg, #3b82f6 0%, #1d4ed8 100%);
+        color: #white;
+        text-align: center;
+        padding: 12px;
+        border-radius: 8px;
+        font-size: 1.2rem;
+        font-weight: 800;
+        letter-spacing: 2px;
+        margin: 15px 0;
+        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+    }
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
+
+# Header Title
+st.markdown(
+    '<div class="main-header">⚡ QUANTUM FOOTBALL ENGINE V2.1</div>',
+    unsafe_allow_html=True,
+)
+
+# Input Form in Card
+with st.container():
+  st.markdown('<div class="custom-card">', unsafe_allow_html=True)
+
+  col1, col2 = st.columns(2)
+  with col1:
+    h_name = st.text_input("🏠 Home Team Name", "TEAM A")
+    h_input = st.text_input(
+        f"Last 5 Results ({h_name})", "2-1 1-1 3-0 0-1 2-0", key="h_res"
+    )
+  with col2:
+    a_name = st.text_input("✈️ Away Team Name", "TEAM B")
+    a_input = st.text_input(
+        f"Last 5 Results ({a_name})", "0-1 2-2 1-0 1-1 0-0", key="a_res"
+    )
+
+  st.markdown("</div>", unsafe_allow_html=True)
 
 engine = QuantumFootballEngineFull()
 
-if st.button("🚀 GENERATE PREDICTIONS", use_container_width=True):
+# Prediction Action
+if st.button("🚀 GENERATE ANALYTICAL PREDICTIONS", use_container_width=True):
   try:
     df_predictions = engine.predict_match(h_input, a_input)
     df_fipa = engine.extract_fipa_predictions(df_predictions)
@@ -704,42 +829,78 @@ if st.button("🚀 GENERATE PREDICTIONS", use_container_width=True):
     st.session_state["a_name"] = a_name
     st.session_state["computed"] = True
   except Exception as e:
-    st.error(f"Error: {e}")
+    st.error(f"❌ Error: {e}")
 
+# Security & Results Display
 if st.session_state.get("computed", False):
-  st.info(f"🔑 **MATCH CODE IS: [{st.session_state['match_code']}]**")
-  pwd_input = st.text_input("Enter Password to view predictions:", type="password")
+  st.markdown(
+      f'<div class="match-code-badge">🔑 MATCH CODE: [{st.session_state["match_code"]}]</div>',
+      unsafe_allow_html=True,
+  )
+
+  pwd_input = st.text_input(
+      "🔒 Enter Match Security Password:", type="password"
+  )
 
   if pwd_input:
     if _v_sec(st.session_state["match_code"], pwd_input):
-      st.success("ACCESS GRANTED!")
-      st.subheader(
-          f"MATCH: {st.session_state['h_name'].upper()} VS"
-          f" {st.session_state['a_name'].upper()}"
-      )
-      st.caption(_decode_data(_ENCODED_TITLE))
-      st.caption(_decode_data(_ENCODED_PHONE))
+      st.success("✅ ACCESS GRANTED")
 
-      st.write("### VIP PREDICTIONS")
+      st.markdown(
+          f"<h3 style='text-align: center; color: #f8fafc; margin-top: 20px;'>MATCH: {st.session_state['h_name'].upper()} VS {st.session_state['a_name'].upper()}</h3>",
+          unsafe_allow_html=True,
+      )
+      st.caption(
+          f"<p style='text-align: center;'>{_decode_data(_ENCODED_TITLE)} | {_decode_data(_ENCODED_PHONE)}</p>",
+          unsafe_allow_html=True,
+      )
+
+      # VIP Predictions Section
+      st.markdown(
+          "<h4 style='color: #10b981; margin-top: 20px;'>⭐ VIP PREDICTIONS</h4>",
+          unsafe_allow_html=True,
+      )
       df_v = st.session_state["df_vfipa"]
       if not df_v.empty:
         for idx, row in df_v.iterrows():
-          st.write(
-              f"**#{idx+1:02d} {st.session_state['h_name'].upper()} {row['Exact_Score']} {st.session_state['a_name'].upper()} [{float(row['Probability_%']):.4f}%]**"
+          st.markdown(
+              f"""
+                    <div class="prediction-box">
+                        <div>
+                            <span class="prediction-rank">#{idx+1:02d}</span>
+                            <span class="prediction-match">{st.session_state['h_name'].upper()} {row['Exact_Score']} {st.session_state['a_name'].upper()}</span>
+                        </div>
+                        <div class="prediction-prob">[{float(row['Probability_%']):.4f}%]</div>
+                    </div>
+                    """,
+              unsafe_allow_html=True,
           )
 
-      st.write("### SURPRISE PREDICTIONS")
+      # Surprise Predictions Section
+      st.markdown(
+          "<h4 style='color: #f59e0b; margin-top: 20px;'>🎁 SURPRISE PREDICTIONS</h4>",
+          unsafe_allow_html=True,
+      )
       df_s = st.session_state["df_surprise"]
       if not df_s.empty:
         for idx, row in df_s.iterrows():
-          st.write(
-              f"**#{idx+1:02d} {st.session_state['h_name'].upper()} {row['Exact_Score']} {st.session_state['a_name'].upper()} [{float(row['Probability_%']):.4f}%]**"
+          st.markdown(
+              f"""
+                    <div class="prediction-box prediction-box-surprise">
+                        <div>
+                            <span class="prediction-rank" style="color:#f59e0b;">#{idx+1:02d}</span>
+                            <span class="prediction-match">{st.session_state['h_name'].upper()} {row['Exact_Score']} {st.session_state['a_name'].upper()}</span>
+                        </div>
+                        <div class="prediction-prob" style="background-color:rgba(245, 158, 11, 0.15); color:#fbbf24;">[{float(row['Probability_%']):.4f}%]</div>
+                    </div>
+                    """,
+              unsafe_allow_html=True,
           )
 
-      st.write("---")
-      st.caption(_decode_data(_ENCODED_DATA))
-      st.caption(_decode_data(_ENCODED_WARN1_TEXT))
-      st.caption(_decode_data(_ENCODED_WARN2_TEXT))
-      st.caption(_decode_data(_ENCODED_WARN3_TEXT))
+      st.markdown("<hr style='border-color: #30363d;'/>", unsafe_allow_html=True)
+      st.caption(
+          f"<p style='text-align: center; color: #6e7681;'>{_decode_data(_ENCODED_DATA)}<br/>{_decode_data(_ENCODED_WARN1_TEXT)}<br/>{_decode_data(_ENCODED_WARN2_TEXT)}</p>",
+          unsafe_allow_html=True,
+      )
     else:
-      st.error("INCORRECT PASSWORD! ACCESS DENIED.")
+      st.error("❌ INCORRECT PASSWORD! ACCESS DENIED.")
