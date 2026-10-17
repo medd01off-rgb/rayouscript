@@ -13,11 +13,10 @@ st.set_page_config(
     initial_sidebar_state="collapsed",
 )
 
-# Current Date & Max Daily Limit
 today_date_str = str(datetime.date.today())
 MAX_DAILY_LIMIT = 5
 
-# Synchronize usage count from URL Query Parameters (Persists across page refreshes)
+# Synchronize usage count from URL Query Parameters
 query_date = st.query_params.get("date", "")
 if query_date == today_date_str:
     try:
@@ -27,7 +26,6 @@ if query_date == today_date_str:
 else:
     url_usage = 0
 
-# Session State Initialization
 if (
     "usage_date" not in st.session_state
     or st.session_state["usage_date"] != today_date_str
@@ -41,30 +39,32 @@ else:
 
 current_usage = st.session_state["usage_count"]
 
-# Silent JS Guard: Enforces localStorage persistence if URL parameters are manually cleared
-js_guard_html = f"""
+# Immediate LocalStorage Check Script (Runs at top of page)
+js_auto_sync = f"""
 <script>
-try {{
-    var today = '{today_date_str}';
-    var storedDate = localStorage.getItem('rayou_date');
-    var storedCount = parseInt(localStorage.getItem('rayou_count') || '0', 10);
-    
-    if (storedDate === today && storedCount > 0) {{
-        var url = new URL(window.parent.location.href);
-        var currentParamCount = parseInt(url.searchParams.get('count') || '0', 10);
+(function() {{
+    try {{
+        var today = '{today_date_str}';
+        var storedDate = localStorage.getItem('rayou_date');
+        var storedCount = parseInt(localStorage.getItem('rayou_count') || '0', 10);
         
-        if (currentParamCount < storedCount) {{
-            url.searchParams.set('count', storedCount.toString());
-            url.searchParams.set('date', today);
-            window.parent.location.href = url.href;
+        if (storedDate === today && storedCount > 0) {{
+            var url = new URL(window.parent.location.href);
+            var currentParamCount = parseInt(url.searchParams.get('count') || '0', 10);
+            
+            if (currentParamCount < storedCount) {{
+                url.searchParams.set('count', storedCount.toString());
+                url.searchParams.set('date', today);
+                window.parent.location.replace(url.href);
+            }}
         }}
-    }}
-}} catch(e) {{}}
+    }} catch(e) {{}}
+}})();
 </script>
 """
-components.html(js_guard_html, height=0, width=0)
+components.html(js_auto_sync, height=0, width=0)
 
-# GitHub Dark Theme Palette & Typography (Jost + Cairo)
+# GitHub Dark Theme Palette & Typography
 st.markdown(
     """
     <style>
@@ -74,13 +74,11 @@ st.markdown(
         font-family: 'Jost', 'Cairo', sans-serif !important;
     }
 
-    /* GitHub Dark Canvas Background */
     .stApp {
         background-color: #0d1117;
         color: #c9d1d9;
     }
 
-    /* Header Container Style */
     .header-container {
         position: relative;
         text-align: center;
@@ -93,7 +91,6 @@ st.markdown(
         box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
     }
 
-    /* WhatsApp Gold Badge attached to Top-Right Corner */
     .header-wa-badge {
         position: absolute;
         top: -18px;
@@ -137,7 +134,6 @@ st.markdown(
         margin-top: 4px;
     }
 
-    /* Centered Input Label */
     .input-label-centered {
         text-align: center;
         font-size: 13px;
@@ -148,7 +144,6 @@ st.markdown(
         text-transform: uppercase;
     }
 
-    /* Input Field Styling */
     .stTextInput > div > div > input {
         background-color: #0d1117 !important;
         color: #c5a059 !important;
@@ -165,7 +160,6 @@ st.markdown(
         box-shadow: 0 0 0 3px rgba(197, 160, 89, 0.2) !important;
     }
 
-    /* Primary Execution Button */
     .stButton > button {
         background: linear-gradient(180deg, #c5a059 0%, #a3813e 100%) !important;
         color: #0d1117 !important;
@@ -187,7 +181,6 @@ st.markdown(
         color: #0d1117 !important;
     }
 
-    /* Output Result Box */
     .result-container {
         text-align: center;
         padding: 22px;
@@ -215,7 +208,6 @@ st.markdown(
         margin-top: 4px;
     }
 
-    /* Daily Execution Counter Display */
     .usage-tracker {
         text-align: center;
         font-size: 12px;
@@ -225,7 +217,6 @@ st.markdown(
         line-height: 1.6;
     }
 
-    /* Limit Threshold Exceeded Notice */
     .limit-container {
         text-align: center;
         padding: 30px 20px;
@@ -279,7 +270,6 @@ st.markdown(
         box-shadow: 0 4px 12px rgba(197, 160, 89, 0.3);
     }
 
-    /* Footer Section (English Only) */
     .footer-container {
         margin-top: 50px;
         padding-top: 20px;
@@ -301,7 +291,6 @@ st.markdown(
 )
 
 
-# Obfuscated Core Cipher Protocol
 def _execute_cipher(decimal_input: str) -> str:
     key_base = base64.b64decode(b"NDg=").decode("utf-8")
     int_part, frac_part = decimal_input.strip().split(".", 1)
@@ -310,7 +299,7 @@ def _execute_cipher(decimal_input: str) -> str:
     return str(int(total_value)).zfill(4)[-4:]
 
 
-# Interface Header with Top-Right Gold WhatsApp Badge
+# Header
 st.markdown(
     """
     <div class="header-container">
@@ -327,7 +316,6 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-# Execution Counter Check
 remaining_executions = MAX_DAILY_LIMIT - current_usage
 
 if remaining_executions > 0:
@@ -362,13 +350,11 @@ if remaining_executions > 0:
             try:
                 authorization_token = _execute_cipher(sanitized_val)
 
-                # Update count and query parameters so F5/Refresh keeps state
                 new_count = current_usage + 1
                 st.session_state["usage_count"] = new_count
                 st.query_params["count"] = str(new_count)
                 st.query_params["date"] = today_date_str
 
-                # Display Generated Authorization Code
                 st.markdown(
                     f"""
                     <div class="result-container">
@@ -379,7 +365,6 @@ if remaining_executions > 0:
                     unsafe_allow_html=True,
                 )
 
-                # Dedicated Clipboard Copy Button & LocalStorage Script Component
                 copy_component_html = f"""
                 <div style="text-align: center; margin-top: 14px;">
                     <button id="copyBtn" onclick="copyToClipboard()" style="
@@ -410,7 +395,6 @@ if remaining_executions > 0:
                     }}, 2000);
                 }}
                 
-                // Store usage per device in browser localStorage as secondary guard
                 try {{
                     var today = '{today_date_str}';
                     var count = {new_count};
@@ -430,7 +414,6 @@ if remaining_executions > 0:
                 "Format Requirement: The input must include a decimal point | صيغة غير صحيحة: يجب أن يحتوي الرقم على فاصلة."
             )
 else:
-    # Display Threshold Exceeded Card with Dual-Language Pre-filled WhatsApp Message
     wa_msg_text = (
         "Hello Rayou Script, I would like to subscribe for unlimited access.\n"
         "مرحباً رايو سكريبت، أود الاشتراك للحصول على وصول غير محدود."
@@ -460,7 +443,6 @@ else:
         unsafe_allow_html=True,
     )
 
-# Confidential System Notice (Sidebar)
 st.sidebar.markdown("### Authorization Notice")
 st.sidebar.markdown(
     """
@@ -472,7 +454,6 @@ st.sidebar.markdown(
 """
 )
 
-# Footer Section (English Only)
 st.markdown(
     """
     <div class="footer-container">
