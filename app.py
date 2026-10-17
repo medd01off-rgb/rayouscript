@@ -40,51 +40,75 @@ st.markdown(
         color: #c9d1d9;
     }
 
-    /* Header Container (GitHub Card Style with Gold Accent & Top-Right Logo) */
+    /* Header Container (Matched to Image Style) */
     .header-container {
         position: relative;
         text-align: center;
-        padding: 30px 20px;
+        padding: 35px 20px 25px 20px;
         background-color: #161b22;
-        border: 1px solid #30363d;
-        border-top: 3px solid #c5a059;
-        border-radius: 6px;
+        border: 1px solid #c5a059;
+        border-radius: 8px;
+        margin-top: 15px;
         margin-bottom: 25px;
         box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
     }
 
-    .header-wa-icon {
+    /* WhatsApp Gold Badge attached to Top-Right Corner */
+    .header-wa-badge {
         position: absolute;
-        top: 14px;
-        right: 14px;
+        top: -18px;
+        right: -18px;
+        width: 44px;
+        height: 44px;
+        background-color: #c5a059;
+        border-radius: 50%;
         display: flex;
         align-items: center;
         justify-content: center;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+        z-index: 100;
         text-decoration: none;
         transition: transform 0.2s ease-in-out;
     }
 
-    .header-wa-icon:hover {
+    .header-wa-badge:hover {
         transform: scale(1.1);
     }
 
     .brand-title {
-        font-size: 28px;
+        font-size: 32px;
         font-weight: 700;
-        letter-spacing: 3px;
+        letter-spacing: 4px;
         color: #c5a059;
         text-transform: uppercase;
         margin: 0;
     }
 
-    .brand-subtitle {
-        font-size: 13px;
+    .brand-subtitle-en {
+        font-size: 14px;
         letter-spacing: 1.5px;
         color: #8b949e;
-        margin-top: 6px;
+        margin-top: 10px;
     }
 
-    /* Input Field Styling (GitHub Dark Input) */
+    .brand-subtitle-ar {
+        font-size: 14px;
+        color: #8b949e;
+        margin-top: 4px;
+    }
+
+    /* Centered Input Label */
+    .input-label-centered {
+        text-align: center;
+        font-size: 13px;
+        font-weight: 600;
+        letter-spacing: 2px;
+        color: #8b949e;
+        margin-bottom: 8px;
+        text-transform: uppercase;
+    }
+
+    /* Input Field Styling */
     .stTextInput > div > div > input {
         background-color: #0d1117 !important;
         color: #c5a059 !important;
@@ -157,7 +181,8 @@ st.markdown(
         font-size: 12px;
         letter-spacing: 1px;
         color: #8b949e;
-        margin-bottom: 12px;
+        margin-bottom: 16px;
+        line-height: 1.6;
     }
 
     /* Limit Threshold Exceeded Notice */
@@ -245,18 +270,18 @@ def _execute_cipher(decimal_input: str) -> str:
     return str(int(total_value)).zfill(4)[-4:]
 
 
-# Interface Header with Gold WhatsApp Icon Cutout at Top-Right
+# Interface Header with Top-Right Gold WhatsApp Badge
 st.markdown(
     """
     <div class="header-container">
-        <a href="https://wa.me/212760402682" target="_blank" class="header-wa-icon" title="WhatsApp Contact">
-            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <circle cx="12" cy="12" r="12" fill="#c5a059"/>
-                <path fill-rule="evenodd" clip-rule="evenodd" d="M12 3.5C7.306 3.5 3.5 7.306 3.5 12C3.5 13.688 3.993 15.26 4.843 16.582L3.8 20.4L7.712 19.375C8.988 20.147 10.45 20.5 12 20.5C16.694 20.5 20.5 16.694 20.5 12C20.5 7.306 16.694 3.5 12 3.5ZM9.08 8.182C8.941 8.182 8.718 8.234 8.528 8.442C8.337 8.65 7.8 9.153 7.8 10.177C7.8 11.201 8.546 12.19 8.65 12.329C8.754 12.468 10.12 14.576 12.215 15.48C13.957 16.232 14.312 16.082 14.694 16.047C15.076 16.012 15.908 15.556 16.082 15.07C16.255 14.584 16.255 14.167 16.203 14.08C16.151 13.993 16.012 13.941 15.804 13.837C15.595 13.733 14.57 13.229 14.379 13.16C14.188 13.09 14.049 13.056 13.91 13.264C13.771 13.472 13.372 13.941 13.25 14.08C13.129 14.219 13.007 14.236 12.799 14.132C12.59 14.028 11.918 13.808 11.121 13.098C10.499 12.544 10.079 11.86 9.958 11.651C9.836 11.443 9.945 11.33 10.05 11.226C10.144 11.133 10.258 10.984 10.362 10.862C10.466 10.74 10.5 10.653 10.57 10.515C10.639 10.376 10.605 10.255 10.553 10.151C10.501 10.047 10.084 9.04 9.911 8.623C9.742 8.217 9.57 8.24 9.444 8.234C9.323 8.228 9.184 8.182 9.08 8.182Z" fill="#161b22"/>
+        <a href="https://wa.me/212760402682" target="_blank" class="header-wa-badge" title="WhatsApp Contact">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="#161b22">
+                <path d="M12 2C6.48 2 2 6.48 2 12c0 1.82.49 3.53 1.35 5L2 22l5.12-1.32C8.51 21.52 10.2 22 12 22c5.52 0 10-4.48 10-10S17.52 2 12 2zm0 18c-1.57 0-3.04-.42-4.32-1.16l-.31-.18-3.21.83.84-3.13-.2-.32C4.04 14.95 3.6 13.51 3.6 12c0-4.63 3.77-8.4 8.4-8.4s8.4 3.77 8.4 8.4-3.77 8.4-8.4 8.4zm4.61-6.28c-.25-.13-1.49-.74-1.72-.82-.23-.08-.4-.13-.57.13-.17.25-.66.82-.81.99-.15.17-.3.19-.55.06-.25-.13-1.07-.39-2.04-1.25-.76-.67-1.27-1.5-1.42-1.75-.15-.25-.02-.39.11-.51.11-.11.25-.29.38-.44.13-.15.17-.25.25-.42.08-.17.04-.32-.02-.44-.06-.13-.57-1.37-.78-1.87-.2-.49-.41-.42-.57-.43h-.49c-.17 0-.44.06-.67.31-.23.25-.88.86-.88 2.1 0 1.24.9 2.44 1.03 2.61.13.17 1.77 2.71 4.29 3.8.6.26 1.07.41 1.44.53.6.19 1.15.16 1.59.1.48-.07 1.49-.61 1.7-.19.21-.58.21-.98.15-1.05-.06-.07-.23-.13-.48-.26z"/>
             </svg>
         </a>
-        <div class="brand-title">Rayou Script</div>
-        <div class="brand-subtitle">Secured Verification Protocol | بروتوكول التحقق المشفر</div>
+        <div class="brand-title">RAYOU SCRIPT</div>
+        <div class="brand-subtitle-en">Secured Verification Protocol</div>
+        <div class="brand-subtitle-ar">بروتوكول التحقق المشفر</div>
     </div>
 """,
     unsafe_allow_html=True,
@@ -267,14 +292,25 @@ remaining_executions = MAX_DAILY_LIMIT - st.session_state["usage_count"]
 
 if remaining_executions > 0:
     st.markdown(
-        f'<div class="usage-tracker">Daily Executions Remaining: <b>{remaining_executions}/{MAX_DAILY_LIMIT}</b> | المحاولات المتبقية اليوم: <b>{remaining_executions}/{MAX_DAILY_LIMIT}</b></div>',
+        f"""
+        <div class="usage-tracker">
+            <div>Daily Executions Remaining: <b>{remaining_executions}/{MAX_DAILY_LIMIT}</b></div>
+            <div>المحاولات المتبقية اليوم: <b>{remaining_executions}/{MAX_DAILY_LIMIT}</b></div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    st.markdown(
+        '<div class="input-label-centered">DECIMAL INPUT VECTOR</div>',
         unsafe_allow_html=True,
     )
 
     decimal_entry = st.text_input(
-        "DECIMAL INPUT VECTOR | أدخل الرقم العشري",
+        "",
         placeholder="34.7313",
         help="Enter the decimal sequence | أدخل التسلسل العشري",
+        label_visibility="collapsed",
     )
 
     if st.button(
