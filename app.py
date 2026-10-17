@@ -2,6 +2,7 @@ import base64
 import datetime
 from decimal import Decimal
 import urllib.parse
+import extra_streamlit_components as stx
 import streamlit as st
 import streamlit.components.v1 as components
 
@@ -13,58 +14,35 @@ st.set_page_config(
     initial_sidebar_state="collapsed",
 )
 
+# Initialize Cookie Manager
+cookie_manager = stx.CookieManager()
+
 today_date_str = str(datetime.date.today())
 MAX_DAILY_LIMIT = 5
 
-# Synchronize usage count from URL Query Parameters
-query_date = st.query_params.get("date", "")
-if query_date == today_date_str:
-    try:
-        url_usage = int(st.query_params.get("count", "0"))
-    except ValueError:
-        url_usage = 0
-else:
-    url_usage = 0
+# Fetch stored usage from Browser Cookies
+saved_date = cookie_manager.get(cookie="rayou_date")
+saved_count_str = cookie_manager.get(cookie="rayou_count")
 
-if (
-    "usage_date" not in st.session_state
-    or st.session_state["usage_date"] != today_date_str
-):
-    st.session_state["usage_date"] = today_date_str
-    st.session_state["usage_count"] = url_usage
+if saved_date == today_date_str and saved_count_str is not None:
+    try:
+        current_usage = int(saved_count_str)
+    except ValueError:
+        current_usage = 0
+else:
+    current_usage = 0
+
+# Sync with Session State
+if "usage_count" not in st.session_state:
+    st.session_state["usage_count"] = current_usage
 else:
     st.session_state["usage_count"] = max(
-        st.session_state["usage_count"], url_usage
+        st.session_state["usage_count"], current_usage
     )
 
 current_usage = st.session_state["usage_count"]
 
-# Immediate LocalStorage Check Script (Runs at top of page)
-js_auto_sync = f"""
-<script>
-(function() {{
-    try {{
-        var today = '{today_date_str}';
-        var storedDate = localStorage.getItem('rayou_date');
-        var storedCount = parseInt(localStorage.getItem('rayou_count') || '0', 10);
-        
-        if (storedDate === today && storedCount > 0) {{
-            var url = new URL(window.parent.location.href);
-            var currentParamCount = parseInt(url.searchParams.get('count') || '0', 10);
-            
-            if (currentParamCount < storedCount) {{
-                url.searchParams.set('count', storedCount.toString());
-                url.searchParams.set('date', today);
-                window.parent.location.replace(url.href);
-            }}
-        }}
-    }} catch(e) {{}}
-}})();
-</script>
-"""
-components.html(js_auto_sync, height=0, width=0)
-
-# GitHub Dark Theme Palette & Typography
+# GitHub Dark Theme Palette & Typography (Jost + Cairo)
 st.markdown(
     """
     <style>
@@ -74,11 +52,13 @@ st.markdown(
         font-family: 'Jost', 'Cairo', sans-serif !important;
     }
 
+    /* GitHub Dark Canvas Background */
     .stApp {
         background-color: #0d1117;
         color: #c9d1d9;
     }
 
+    /* Header Container Style */
     .header-container {
         position: relative;
         text-align: center;
@@ -91,6 +71,7 @@ st.markdown(
         box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
     }
 
+    /* WhatsApp Gold Badge attached to Top-Right Corner */
     .header-wa-badge {
         position: absolute;
         top: -18px;
@@ -134,6 +115,7 @@ st.markdown(
         margin-top: 4px;
     }
 
+    /* Centered Input Label */
     .input-label-centered {
         text-align: center;
         font-size: 13px;
@@ -144,6 +126,7 @@ st.markdown(
         text-transform: uppercase;
     }
 
+    /* Input Field Styling */
     .stTextInput > div > div > input {
         background-color: #0d1117 !important;
         color: #c5a059 !important;
@@ -160,6 +143,7 @@ st.markdown(
         box-shadow: 0 0 0 3px rgba(197, 160, 89, 0.2) !important;
     }
 
+    /* Primary Execution Button */
     .stButton > button {
         background: linear-gradient(180deg, #c5a059 0%, #a3813e 100%) !important;
         color: #0d1117 !important;
@@ -181,6 +165,7 @@ st.markdown(
         color: #0d1117 !important;
     }
 
+    /* Output Result Box */
     .result-container {
         text-align: center;
         padding: 22px;
@@ -208,6 +193,7 @@ st.markdown(
         margin-top: 4px;
     }
 
+    /* Daily Execution Counter Display */
     .usage-tracker {
         text-align: center;
         font-size: 12px;
@@ -217,6 +203,7 @@ st.markdown(
         line-height: 1.6;
     }
 
+    /* Limit Threshold Exceeded Notice */
     .limit-container {
         text-align: center;
         padding: 30px 20px;
@@ -270,6 +257,7 @@ st.markdown(
         box-shadow: 0 4px 12px rgba(197, 160, 89, 0.3);
     }
 
+    /* Footer Section (English Only) */
     .footer-container {
         margin-top: 50px;
         padding-top: 20px;
@@ -291,6 +279,7 @@ st.markdown(
 )
 
 
+# Obfuscated Core Cipher Protocol
 def _execute_cipher(decimal_input: str) -> str:
     key_base = base64.b64decode(b"NDg=").decode("utf-8")
     int_part, frac_part = decimal_input.strip().split(".", 1)
@@ -299,7 +288,7 @@ def _execute_cipher(decimal_input: str) -> str:
     return str(int(total_value)).zfill(4)[-4:]
 
 
-# Header
+# Interface Header
 st.markdown(
     """
     <div class="header-container">
@@ -350,10 +339,11 @@ if remaining_executions > 0:
             try:
                 authorization_token = _execute_cipher(sanitized_val)
 
+                # Increment count and persist directly to Browser Cookies
                 new_count = current_usage + 1
                 st.session_state["usage_count"] = new_count
-                st.query_params["count"] = str(new_count)
-                st.query_params["date"] = today_date_str
+                cookie_manager.set("rayou_date", today_date_str, expires_at=datetime.datetime.now() + datetime.timedelta(days=1))
+                cookie_manager.set("rayou_count", str(new_count), expires_at=datetime.datetime.now() + datetime.timedelta(days=1))
 
                 st.markdown(
                     f"""
@@ -394,13 +384,6 @@ if remaining_executions > 0:
                         button.style.color = '#c5a059';
                     }}, 2000);
                 }}
-                
-                try {{
-                    var today = '{today_date_str}';
-                    var count = {new_count};
-                    localStorage.setItem('rayou_date', today);
-                    localStorage.setItem('rayou_count', count.toString());
-                }} catch(e) {{}}
                 </script>
                 """
                 components.html(copy_component_html, height=60)
@@ -443,6 +426,7 @@ else:
         unsafe_allow_html=True,
     )
 
+# Confidential System Notice (Sidebar)
 st.sidebar.markdown("### Authorization Notice")
 st.sidebar.markdown(
     """
@@ -454,6 +438,7 @@ st.sidebar.markdown(
 """
 )
 
+# Footer Section (English Only)
 st.markdown(
     """
     <div class="footer-container">
