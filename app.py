@@ -1,6 +1,7 @@
 import base64
 import datetime
 from decimal import Decimal
+import urllib.parse
 import streamlit as st
 import streamlit.components.v1 as components
 
@@ -39,8 +40,9 @@ st.markdown(
         color: #c9d1d9;
     }
 
-    /* Header Container (GitHub Card Style with Gold Accent) */
+    /* Header Container (GitHub Card Style with Gold Accent & Top-Right Logo) */
     .header-container {
+        position: relative;
         text-align: center;
         padding: 30px 20px;
         background-color: #161b22;
@@ -49,6 +51,21 @@ st.markdown(
         border-radius: 6px;
         margin-bottom: 25px;
         box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+    }
+
+    .header-wa-icon {
+        position: absolute;
+        top: 14px;
+        right: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-decoration: none;
+        transition: transform 0.2s ease-in-out;
+    }
+
+    .header-wa-icon:hover {
+        transform: scale(1.1);
     }
 
     .brand-title {
@@ -184,10 +201,11 @@ st.markdown(
         color: #0d1117 !important;
         text-decoration: none;
         font-weight: 700;
-        font-size: 12px;
+        font-size: 13px;
         letter-spacing: 1.5px;
-        padding: 12px 24px;
+        padding: 10px 24px;
         border-radius: 6px;
+        line-height: 1.5;
         transition: all 0.2s ease-in-out;
     }
 
@@ -227,10 +245,16 @@ def _execute_cipher(decimal_input: str) -> str:
     return str(int(total_value)).zfill(4)[-4:]
 
 
-# Interface Header
+# Interface Header with Gold WhatsApp Icon Cutout at Top-Right
 st.markdown(
     """
     <div class="header-container">
+        <a href="https://wa.me/212760402682" target="_blank" class="header-wa-icon" title="WhatsApp Contact">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="12" cy="12" r="12" fill="#c5a059"/>
+                <path fill-rule="evenodd" clip-rule="evenodd" d="M12 3.5C7.306 3.5 3.5 7.306 3.5 12C3.5 13.688 3.993 15.26 4.843 16.582L3.8 20.4L7.712 19.375C8.988 20.147 10.45 20.5 12 20.5C16.694 20.5 20.5 16.694 20.5 12C20.5 7.306 16.694 3.5 12 3.5ZM9.08 8.182C8.941 8.182 8.718 8.234 8.528 8.442C8.337 8.65 7.8 9.153 7.8 10.177C7.8 11.201 8.546 12.19 8.65 12.329C8.754 12.468 10.12 14.576 12.215 15.48C13.957 16.232 14.312 16.082 14.694 16.047C15.076 16.012 15.908 15.556 16.082 15.07C16.255 14.584 16.255 14.167 16.203 14.08C16.151 13.993 16.012 13.941 15.804 13.837C15.595 13.733 14.57 13.229 14.379 13.16C14.188 13.09 14.049 13.056 13.91 13.264C13.771 13.472 13.372 13.941 13.25 14.08C13.129 14.219 13.007 14.236 12.799 14.132C12.59 14.028 11.918 13.808 11.121 13.098C10.499 12.544 10.079 11.86 9.958 11.651C9.836 11.443 9.945 11.33 10.05 11.226C10.144 11.133 10.258 10.984 10.362 10.862C10.466 10.74 10.5 10.653 10.57 10.515C10.639 10.376 10.605 10.255 10.553 10.151C10.501 10.047 10.084 9.04 9.911 8.623C9.742 8.217 9.57 8.24 9.444 8.234C9.323 8.228 9.184 8.182 9.08 8.182Z" fill="#161b22"/>
+            </svg>
+        </a>
         <div class="brand-title">Rayou Script</div>
         <div class="brand-subtitle">Secured Verification Protocol | بروتوكول التحقق المشفر</div>
     </div>
@@ -317,8 +341,16 @@ if remaining_executions > 0:
                 "Format Requirement: The input must include a decimal point | صيغة غير صحيحة: يجب أن يحتوي الرقم على فاصلة."
             )
 else:
-    # Display Threshold Exceeded Card
-    whatsapp_subscription_url = "https://wa.me/212760402682?text=Hello%20Rayou%20Script%2C%20I%20would%20like%20to%20subscribe%20for%20unlimited%20access."
+    # Display Threshold Exceeded Card with Dual-Language Pre-filled WhatsApp Message
+    wa_msg_text = (
+        "Hello Rayou Script, I would like to subscribe for unlimited access.\n"
+        "مرحباً رايو سكريبت، أود الاشتراك للحصول على وصول غير محدود."
+    )
+    encoded_wa_msg = urllib.parse.quote(wa_msg_text)
+    whatsapp_subscription_url = (
+        f"https://wa.me/212760402682?text={encoded_wa_msg}"
+    )
+
     st.markdown(
         f"""
         <div class="limit-container">
@@ -330,7 +362,10 @@ else:
                 تم الوصول إلى الحد الأقصى لعدد عمليات الإعدام اليومية وهو {MAX_DAILY_LIMIT} عمليات.<br>
                 للحصول على استخدام غير محدود، يرجى التواصل مع الإدارة لتفعيل الاشتراك الكامل.
             </div>
-            <a href="{whatsapp_subscription_url}" target="_blank" class="wa-link-button">Subscribe via WhatsApp | الاشتراك عبر الواتساب</a>
+            <a href="{whatsapp_subscription_url}" target="_blank" class="wa-link-button">
+                Subscribe via WhatsApp<br>
+                <span style="font-size: 12px; font-weight: 600; letter-spacing: 0;">الاشتراك عبر الواتساب</span>
+            </a>
         </div>
     """,
         unsafe_allow_html=True,
