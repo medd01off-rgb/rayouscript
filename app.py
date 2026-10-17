@@ -1,6 +1,6 @@
 import base64
-from decimal import Decimal
 import datetime
+from decimal import Decimal
 import streamlit as st
 import streamlit.components.v1 as components
 
@@ -14,20 +14,23 @@ st.set_page_config(
 
 # Session State Initialization for Daily Usage Limit Tracking (Max 5 per day)
 today_date = datetime.date.today()
-if "usage_date" not in st.session_state or st.session_state["usage_date"] != today_date:
+if (
+    "usage_date" not in st.session_state
+    or st.session_state["usage_date"] != today_date
+):
     st.session_state["usage_date"] = today_date
     st.session_state["usage_count"] = 0
 
 MAX_DAILY_LIMIT = 5
 
-# Global Typography (Jost Font) and Diplomatic Luxury Styling
+# Global Typography (Jost for Latin & Cairo for Arabic) & Luxury Dark Aesthetics
 st.markdown(
     """
     <style>
-    @import url('https://fonts.googleapis.com/css2?family=Jost:wght@300;400;500;600;700&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&family=Jost:wght@300;400;500;600;700&display=swap');
 
     html, body, [class*="css"], .stApp, *, input, button, select, textarea {
-        font-family: 'Jost', sans-serif !important;
+        font-family: 'Jost', 'Cairo', sans-serif !important;
     }
 
     .stApp {
@@ -49,18 +52,17 @@ st.markdown(
     .brand-title {
         font-size: 32px;
         font-weight: 700;
-        letter-spacing: 4px;
+        letter-spacing: 3px;
         color: #c5a059;
         text-transform: uppercase;
         margin: 0;
     }
 
     .brand-subtitle {
-        font-size: 12px;
-        letter-spacing: 3px;
+        font-size: 13px;
+        letter-spacing: 2px;
         color: #8a99ad;
-        text-transform: uppercase;
-        margin-top: 10px;
+        margin-top: 8px;
     }
 
     /* Input Field Styling */
@@ -86,7 +88,7 @@ st.markdown(
         color: #0b1325 !important;
         font-weight: 700 !important;
         font-size: 13px !important;
-        letter-spacing: 2.5px !important;
+        letter-spacing: 2px !important;
         text-transform: uppercase !important;
         border: none !important;
         border-radius: 4px !important;
@@ -109,12 +111,13 @@ st.markdown(
         margin-top: 25px;
         background-color: #112038;
         border-left: 3px solid #c5a059;
+        border-right: 3px solid #c5a059;
         border-radius: 2px;
         box-shadow: 0 5px 20px rgba(0, 0, 0, 0.25);
     }
 
     .result-label {
-        font-size: 11px;
+        font-size: 12px;
         letter-spacing: 2px;
         color: #8a99ad;
         text-transform: uppercase;
@@ -130,12 +133,11 @@ st.markdown(
 
     /* Daily Execution Counter Display */
     .usage-tracker {
-        text-align: right;
-        font-size: 11px;
+        text-align: center;
+        font-size: 12px;
         letter-spacing: 1.5px;
         color: #8a99ad;
-        text-transform: uppercase;
-        margin-bottom: 8px;
+        margin-bottom: 12px;
     }
 
     /* Limit Threshold Exceeded Notice */
@@ -151,7 +153,7 @@ st.markdown(
 
     .limit-title {
         font-size: 16px;
-        font-weight: 600;
+        font-weight: 700;
         color: #e57373;
         letter-spacing: 2px;
         text-transform: uppercase;
@@ -162,7 +164,7 @@ st.markdown(
         font-size: 13px;
         color: #a3b1c6;
         margin-bottom: 25px;
-        line-height: 1.7;
+        line-height: 1.8;
     }
 
     .wa-link-button {
@@ -171,9 +173,8 @@ st.markdown(
         color: #0b1325 !important;
         text-decoration: none;
         font-weight: 700;
-        font-size: 12px;
+        font-size: 13px;
         letter-spacing: 2px;
-        text-transform: uppercase;
         padding: 14px 28px;
         border-radius: 4px;
         transition: all 0.3s ease;
@@ -220,7 +221,7 @@ st.markdown(
     """
     <div class="header-container">
         <div class="brand-title">Rayou Script</div>
-        <div class="brand-subtitle">Secured Verification Protocol</div>
+        <div class="brand-subtitle">Secured Verification Protocol | بروتوكول التحقق المشفر</div>
     </div>
 """,
     unsafe_allow_html=True,
@@ -231,17 +232,20 @@ remaining_executions = MAX_DAILY_LIMIT - st.session_state["usage_count"]
 
 if remaining_executions > 0:
     st.markdown(
-        f'<div class="usage-tracker">Daily Executions Remaining: {remaining_executions}/{MAX_DAILY_LIMIT}</div>',
+        f'<div class="usage-tracker">Daily Executions Remaining: <b>{remaining_executions}/{MAX_DAILY_LIMIT}</b> | المحاولات المتبقية اليوم: <b>{remaining_executions}/{MAX_DAILY_LIMIT}</b></div>',
         unsafe_allow_html=True,
     )
 
     decimal_entry = st.text_input(
-        "DECIMAL INPUT VECTOR",
+        "DECIMAL INPUT VECTOR | أدخل الرقم العشري",
         placeholder="34.7313",
-        help="Enter the valid sequence vector.",
+        help="Enter the decimal sequence | أدخل التسلسل العشري",
     )
 
-    if st.button("GENERATE AUTHORIZATION CODE"):
+    if st.button(
+        "GENERATE AUTHORIZATION CODE | توليد كود التفعيل",
+        use_container_width=True,
+    ):
         sanitized_val = decimal_entry.strip()
         if "." in sanitized_val:
             try:
@@ -252,7 +256,7 @@ if remaining_executions > 0:
                 st.markdown(
                     f"""
                     <div class="result-container">
-                        <div class="result-label">Authorization Token</div>
+                        <div class="result-label">Authorization Token | كود التفعيل الخـاص بك</div>
                         <div class="result-code">{authorization_token}</div>
                     </div>
                 """,
@@ -266,26 +270,25 @@ if remaining_executions > 0:
                         background: transparent;
                         color: #c5a059;
                         border: 1px solid #c5a059;
-                        padding: 10px 24px;
-                        font-family: 'Jost', sans-serif;
-                        font-size: 11px;
+                        padding: 11px 26px;
+                        font-family: 'Jost', 'Cairo', sans-serif;
+                        font-size: 12px;
                         font-weight: 600;
-                        letter-spacing: 2px;
-                        text-transform: uppercase;
+                        letter-spacing: 1.5px;
                         border-radius: 4px;
                         cursor: pointer;
                         transition: all 0.3s ease;
-                    ">Copy Authorization Code</button>
+                    ">COPY AUTHORIZATION CODE | نسخ كود التفعيل</button>
                 </div>
                 <script>
                 function copyToClipboard() {{
                     navigator.clipboard.writeText('{authorization_token}');
                     var button = document.getElementById('copyBtn');
-                    button.innerText = 'COPIED TO CLIPBOARD';
+                    button.innerText = 'COPIED TO CLIPBOARD | تم النسخ بنجاح';
                     button.style.background = '#c5a059';
                     button.style.color = '#0b1325';
                     setTimeout(function() {{
-                        button.innerText = 'COPY AUTHORIZATION CODE';
+                        button.innerText = 'COPY AUTHORIZATION CODE | نسخ كود التفعيل';
                         button.style.background = 'transparent';
                         button.style.color = '#c5a059';
                     }}, 2000);
@@ -296,11 +299,11 @@ if remaining_executions > 0:
 
             except Exception:
                 st.error(
-                    "Processing Error: Invalid entry vector. Verify sequence parameters."
+                    "Processing Error: Invalid entry vector | خطأ في المعالجة: يرجى التأكد من إدخال رقم عشري صحيح."
                 )
         else:
             st.warning(
-                "Format Requirement: The input vector must include a decimal point."
+                "Format Requirement: The input must include a decimal point | صيغة غير صحيحة: يجب أن يحتوي الرقم على فاصلة."
             )
 else:
     # Display Threshold Exceeded Card
@@ -308,25 +311,27 @@ else:
     st.markdown(
         f"""
         <div class="limit-container">
-            <div class="limit-title">Script Execution Limit Reached</div>
+            <div class="limit-title">Script Execution Limit Reached | تم الوصول للحد الأقصى اليومي</div>
             <div class="limit-desc">
-                The maximum threshold of {MAX_DAILY_LIMIT} daily executions for this script has been reached.<br>
-                To obtain unlimited operational access, please contact administration for subscription activation.
+                The maximum limit of {MAX_DAILY_LIMIT} daily executions has been reached.<br>
+                For unlimited operational access, please contact administration to activate your subscription.<br><br>
+                لقد وصلت للحد الأقصى المسموح به <b>({MAX_DAILY_LIMIT} محاولات يومياً)</b>.<br>
+                للحصول على استخدام غير محدود، يرجى التواصل مع الإدارة لتفعيل الاشتراك الكامل.
             </div>
-            <a href="{whatsapp_subscription_url}" target="_blank" class="wa-link-button">Subscribe via WhatsApp</a>
+            <a href="{whatsapp_subscription_url}" target="_blank" class="wa-link-button">Subscribe via WhatsApp | الاشتراك عبر الواتساب</a>
         </div>
     """,
         unsafe_allow_html=True,
     )
 
 # Confidential System Notice (Sidebar)
-st.sidebar.markdown("### Authorization Notice")
+st.sidebar.markdown("### Authorization Notice | معلومات النظام")
 st.sidebar.markdown(
     """
-**System:** Rayou Core Protocol  
-**Classification:** Proprietary / Restricted  
-**Lead Authority:** Rayou  
-**Direct Line / WhatsApp:**  
+**System / النظام:** Rayou Core Protocol  
+**Classification / التصنيف:** Proprietary & Restricted  
+**Developer / المطور:** Rayou  
+**Direct WhatsApp / التواصل المباشر:**  
 `+212 7 60 40 26 82`
 """
 )
@@ -335,8 +340,8 @@ st.sidebar.markdown(
 st.markdown(
     """
     <div class="footer-container">
-        Engineered under <span class="footer-highlight">Rayou Script Systems</span> | Proprietary Protocol<br>
-        Official Inquiries: <span class="footer-highlight">+212 7 60 40 26 82</span>
+        Engineered under <span class="footer-highlight">Rayou Script Systems</span> | جميع الحقوق محفوظة لـ سكريبت رايو<br>
+        Official Inquiries / للاستفسارات الرسمية: <span class="footer-highlight">+212 7 60 40 26 82</span>
     </div>
 """,
     unsafe_allow_html=True,
